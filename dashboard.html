@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoVest Unified Pro Terminal</title>
+    <style>
+        /* --- DESIGN SYSTEM & LAYOUT VARIABLES --- */
+        :root {
+            --bg-body: #0a0b0d;
+            --bg-workspace: #f4f5f8;
+            --white: #ffffff;
+            --text-main: #0a0b0d;
+            --text-muted: #5b616e;
+            --primary-blue: #0052ff;
+            --primary-blue-hover: #0045d8;
+            --primary-blue-light: #e3ecff;
+            --trend-down: #cf202f;
+            --trend-up: #098551;
+            --border-light: #eceff1;
+            --card-radius: 16px;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --modal-bg: #0e1118;
+            --modal-input: #131722;
+            --modal-border: #1e222d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- TWO-COLUMN DESKTOP SCREEN INTERFACE --- */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--white);
+            position: relative;
+        }
+
+        /* Mobile responsive adjustments: stack columns and make the UI fluid on small screens */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                width: 100%;
+                overflow: auto;
+                padding: 12px 0;
+                display: block;
+                align-items: stretch;
+                justify-content: flex-start;
+            }
+
+            .workspace-grid {
+                display: block;
+                height: auto;
+                grid-template-columns: none;
+                width: 100%;
+            }
+
+            .native-app-panel {
+                height: auto;
+                border-right: none;
+            }
+
+            .advanced-terminal-panel {
+                margin-top: 12px;
+            }
+
+            .avatar-circle {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .portfolio-rate-title {
+                font-size: 28px;
+            }
+
+            .search-input {
+                padding: 10px 12px;
+            }
+
+            .terminal-modal-card {
+                max-width: 92%;
+                margin: 0 4%;
+            }
+        }
+
+        /* =======================================
+           LEFT COLUMN: EXPANDED NATIVE APP VIEW
+           ======================================= */
+        .native-app-panel {
+            background-color: var(--white);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Sticky App Top Bar Header */
+        .app-header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-light);
+            z-index: 10;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-main);
+            padding: 4px;
+            border: none;
+            background: none;
+        }
+
+        .search-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #f0f2f5;
+            border: none;
+            padding: 10px 16px 10px 44px;
+            border-radius: 24px;
+            font-size: 15px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        /* Interactive Embedded Image Search Button */
+        .image-search-trigger-btn {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #000000;
+            border: 1px solid #1f2a45;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .image-search-trigger-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .image-search-trigger-btn svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .header-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* User Identity Panel Banner */
+        .account-identity-subbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fafbfc;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .user-meta-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .account-owner-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .account-tier-badge {
+            font-size: 11px;
+            background: #fff3e0;
+            color: #ff9800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        /* Financial Summary Metric Section */
+        .app-body-content {
+            padding: 20px 16px;
+        }
+
+        .portfolio-rate-title {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapse-arrow-btn {
+            background: #f0f2f5;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .rate-delta-sub {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--trend-up);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Asset Row Category List View */
+        .native-category-list {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Section Block Groups */
+        .section-block-group {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 12px;
+            background: #fafbfc;
+            transition: all 0.2s ease;
+        }
+
+        .section-group-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .category-row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .category-row-item:hover {
+            background-color: #f0f2f5;
+        }
+
+        .category-left-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 75%;
+        }
+
+        .category-icon-bg {
+            width: 36px;
+            height: 36px;
+            background-color: #f0f2f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .category-main-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .category-sub-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .category-value-right {
+            font-size: 15px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .category-value-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .deposit-trigger-text {
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        /* Native Lower Buttons Layout */
+        .native-action-footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px 0;
+            margin-top: 12px;
+        }
+
+        .app-btn {
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .app-btn-sec {
+            background-color: #e3ecff;
+            color: var(--primary-blue);
+        }
+
+        .app-btn-prim {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .app-btn-prim:hover {
+            background-color: var(--primary-blue-hover);
+        }
+
+        /* =======================================
+           DYNAMIC MENUBAR DRAWERS
+           ======================================= */
+        .sidebar-drawer {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 380px;
+            height: 100%;
+            background: var(--white);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            transition: left 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-light);
+        }
+
+        .sidebar-drawer.open {
+            left: 0;
+        }
+
+        .drawer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .close-drawer-btn {
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+        }
+
+        .drawer-nav-list {
+            list-style: none;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .drawer-nav-item {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .drawer-nav-item:hover {
+            background: #f0f2f5;
+        }
+
+        .drawer-nav-left-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .drawer-icon {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .drawer-badge {
+            background: var(--trend-up);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .drawer-view-content {
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .setting-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: #f8f9fa;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* Institutional Statement Ledger Styles */
+        .statement-ledger-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 4px 0;
+        }
+
+        .ledger-item-card {
+            background: #fafbfc;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ledger-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ledger-badge-type {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-deposit {
+            background: rgba(0, 82, 255, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .badge-gain {
+            background: rgba(9, 133, 81, 0.1);
+            color: var(--trend-up);
+        }
+
+        .ledger-amount-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .amt-pos {
+            color: var(--trend-up);
+        }
+
+        .amt-neutral {
+            color: var(--primary-blue);
+        }
+
+        .ledger-details-line {
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        .ledger-timestamp-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Institutional Wire Box View Layout Group */
+        .wire-details-sheet {
+            background: #141b2d;
+            border: 1px solid var(--modal-border);
+            padding: 14px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .wire-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            border-bottom: 1px dashed #1f2a45;
+            padding-bottom: 6px;
+        }
+
+        .wire-row:last-child {
+            border: none;
+            padding: 0;
+        }
+
+        .wire-key {
+            color: #7987a1;
+            font-weight: 600;
+        }
+
+        .wire-val {
+            color: var(--white);
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        /* Notification Tray Overlay Modal */
+        .notification-dropdown-tray {
+            position: absolute;
+            top: 65px;
+            right: 16px;
+            width: 360px;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            z-index: 90;
+            display: none;
+            flex-direction: column;
+        }
+
+        .notification-dropdown-tray.open {
+            display: flex;
+        }
+
+        .tray-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-main);
+        }
+
+        .tray-body {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+        }
+
+        .tray-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        .tray-item-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* =======================================
+           RIGHT COLUMN: REAL-TIME TERMINAL & SIGNALS
+           ======================================= */
+        .advanced-terminal-panel {
+            background-color: #0c0f17;
+            display: grid;
+            grid-template-rows: 1fr 280px;
+            height: 100vh;
+            color: var(--white);
+        }
+
+        .live-chart-container {
+            width: 100%;
+            height: 100%;
+            background-color: #131722;
+            border-bottom: 1px solid #1f2a45;
+        }
+
+        .terminal-signals-footer {
+            background-color: #0c0f17;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .signals-header-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #7987a1;
+        }
+
+        .signal-terminal-feed-row-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .signal-log-card {
+            background-color: #141b2d;
+            border: 1px solid #1f2a45;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-left: 4px solid var(--text-muted);
+        }
+
+        .signal-log-card.buy-edge {
+            border-left-color: var(--trend-up);
+        }
+
+        .signal-log-card.sell-edge {
+            border-left-color: var(--trend-down);
+        }
+
+        .sig-pill {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            width: max-content;
+            margin-bottom: 8px;
+        }
+
+        .buy-edge .sig-pill {
+            background: rgba(9, 133, 81, 0.15);
+            color: #098551;
+        }
+
+        .sell-edge .sig-pill {
+            background: rgba(207, 32, 47, 0.15);
+            color: #cf202f;
+        }
+
+        .sig-target-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .sig-balance-text {
+            font-size: 12px;
+            color: #a3b1c2;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .sig-time-text {
+            font-size: 12px;
+            color: #7987a1;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        /* =======================================
+           PROFESSIONAL TRADING OVERLAY MODALS
+           ======================================= */
+        .terminal-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .terminal-modal-card {
+            background: var(--modal-bg);
+            border: 1px solid var(--modal-border);
+            width: 100%;
+            max-width: 460px;
+            border-radius: 12px;
+            color: var(--white);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            animation: modalFadeIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--modal-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-field {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #7987a1;
+            letter-spacing: 0.5px;
+        }
+
+        .input-inline-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 13px 16px;
+            background: var(--modal-input);
+            border: 1px solid var(--modal-border);
+            border-radius: 6px;
+            color: var(--white);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-input:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 600;
+            font-size: 13px;
+            color: #7987a1;
+        }
+
+        .order-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--modal-input);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .order-tab {
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #7987a1;
+        }
+
+        .order-tab.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .modal-action-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-buy {
+            background: var(--trend-up);
+            color: white;
+        }
+
+        .btn-deposit {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* =======================================
+           MOBILE RESPONSIVE OVERRIDES
+           ======================================= */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                height: auto;
+                align-items: flex-start;
+            }
+
+            .workspace-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .native-app-panel {
+                height: auto;
+                overflow-y: visible;
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+            }
+
+            .advanced-terminal-panel {
+                height: 100vw;
+                min-height: 480px;
+                grid-template-rows: 1fr 220px;
+            }
+
+            .terminal-signals-footer {
+                padding: 16px;
+            }
+
+            .signal-terminal-feed-row-stack {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-drawer {
+                width: 100%;
+                max-width: 380px;
+            }
+
+            .notification-dropdown-tray {
+                width: calc(100vw - 32px);
+                right: 16px;
+                left: 16px;
+            }
+
+            .portfolio-rate-title {
+                font-size: 30px;
+            }
+
+            .terminal-modal-card {
+                max-width: calc(100vw - 32px);
+                margin: 16px;
+            }
+
+            .native-action-footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .portfolio-rate-title {
+                font-size: 24px;
+            }
+
+            .app-body-content {
+                padding: 16px 12px;
+            }
+
+            .app-header {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .header-right-actions {
+                gap: 10px;
+            }
+
+            .category-left-meta {
+                width: 65%;
+            }
+
+            .wire-details-sheet {
+                font-size: 12px;
+            }
+
+            .wire-val {
+                font-size: 11px;
+                word-break: break-all;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="workspace-grid">
+
+        <aside class="native-app-panel">
+
+            <div class="sidebar-drawer" id="main-menu-drawer">
+                <div class="drawer-header">
+                    <div class="drawer-title" id="drawer-panel-title">Navigation Hub</div>
+                    <button class="close-drawer-btn" onclick="toggleMainMenuDrawer()">✕</button>
+                </div>
+
+                <ul class="drawer-nav-list" id="drawer-root-links">
+                    <li class="drawer-nav-item" onclick="openDrawerSubView('settings')">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">⚙️</span><span>Terminal
+                                Settings</span></div>
+                        <span style="color:var(--text-muted); font-size:12px;">❯</span>
+                    </li>
+                    <li class="drawer-nav-item" onclick="openDrawerSubView('ledger')">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">📊</span><span>Transaction
+                                History</span></div>
+                        <span class="drawer-badge" style="background-color: var(--primary-blue);">5 Records</span>
+                    </li>
+                    <li class="drawer-nav-item" onclick="alert('Routing to Advanced Cryptographic Security Matrix...')">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">🛡️</span><span>Security & 2FA
+                                Matrix</span></div>
+                        <span style="color:var(--trend-up); font-size:11px; font-weight:700;">SECURE</span>
+                    </li>
+                    <li class="drawer-nav-item" onclick="alert('Opening Developer API Credentials Dashboard...')">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">🔑</span><span>Connected API
+                                Keys</span></div>
+                        <span style="color:var(--text-muted); font-size:12px;">❯</span>
+                    </li>
+                    <li class="drawer-nav-item" onclick="alert('Loading Institutional Tax Documentation Modules...')">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">📄</span><span>Tax & Compliance
+                                Logs</span></div>
+                        <span style="color:var(--text-muted); font-size:12px;">❯</span>
+                    </li>
+                    <li class="drawer-nav-item"
+                        style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;"
+                        onclick="toggleMainMenuDrawer(); window.location.href='login.html';">
+                        <div class="drawer-nav-left-wrapper"><span class="drawer-icon">🔒</span><span
+                                style="color:var(--trend-down); font-weight:700;">Secure Logout Session</span></div>
+                    </li>
+                </ul>
+
+                <div class="drawer-view-content" id="drawer-view-settings">
+                    <div class="setting-field">
+                        <label class="setting-label">Execution Environment</label>
+                        <select class="setting-select">
+                            <option>Live Production Mainnet Liquidity</option>
+                            <option>Virtual Paper Trading Sandbox</option>
+                        </select>
+                    </div>
+                    <button class="app-btn app-btn-prim" style="margin-top:12px;" onclick="returnToDrawerRoot()">Back to
+                        Menu</button>
+                </div>
+
+                <div class="drawer-view-content" id="drawer-view-ledger" style="display:none;">
+                    <div class="statement-ledger-container" id="historical-statement-anchor">
+
+                        <div class="ledger-item-card">
+                            <div class="ledger-top-row">
+                                <span class="ledger-badge-type badge-deposit">Inbound Deposit</span>
+                                <span class="ledger-amount-value amt-neutral">$10,000.00</span>
+                            </div>
+                            <div class="ledger-details-line">
+                                External bank wire transfer cleared. Base asset funds deposited securely via
+                                institutional interface gateway.
+                            </div>
+                            <div class="ledger-timestamp-sub">🗓️ May 29, 2026</div>
+                        </div>
+
+                    </div>
+                    <button class="app-btn app-btn-prim" style="margin-top:16px;" onclick="returnToDrawerRoot()">Back to
+                        Hub</button>
+                </div>
+            </div>
+
+            <div class="notification-dropdown-tray" id="notif-tray">
+                <div class="tray-header">
+                    <span>Terminal Account Ledger Logs</span>
+                    <span style="color:var(--primary-blue); cursor:pointer;" onclick="clearActiveNotifications()">Clear
+                        All</span>
+                </div>
+                <div class="tray-body" id="notif-tray-body">
+                    <div class="tray-item">
+                        🎯 Trading account index balance updated to target cap threshold of <span
+                            style="color:var(--trend-up); font-weight:700;">$10,000.00</span>. Core ledger matrices
+                        adjusted.
+                        <div class="tray-item-time">🗓️ Just Now</div>
+                    </div>
+                </div>
+            </div>
+
+            <header class="app-header">
+                <button class="menu-icon" onclick="toggleMainMenuDrawer()">☰</button>
+                <div class="search-container">
+                    <button class="image-search-trigger-btn" title="Reverse Web Image Search"
+                        onclick="executeVisualReverseSearch()">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="40" stroke="url(#fireIceGrad)" stroke-width="6" fill="none" />
+                            <defs>
+                                <linearGradient id="fireIceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ff7b00" />
+                                    <stop offset="50%" stop-color="#ffae00" />
+                                    <stop offset="100%" stop-color="#00d2ff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </button>
+                    <input type="text" class="search-input" id="terminal-search-field"
+                        placeholder="Search tokens or features..." oninput="executeLiveSearchFilter()">
+                </div>
+                <div class="header-right-actions">
+                    <div style="font-size: 20px; position:relative; cursor:pointer; padding: 4px;"
+                        onclick="toggleNotificationTray(event)">
+                        🔔<span
+                            style="position:absolute; top:2px; right:2px; background:var(--trend-down); width:6px; height:6px; border-radius:50%;"
+                            id="notif-red-dot"></span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="account-identity-subbar">
+                <div class="user-meta-info">
+                    <div class="avatar-circle">TA</div>
+                    <div>
+                        <div class="account-owner-name">Tonja Ann Clan</div>
+                        <div style="font-size:11px; color:var(--text-muted);">UID: 98452-2026</div>
+                    </div>
+                </div>
+                <div class="account-tier-badge">Premium Account</div>
+            </div>
+
+            <div class="app-body-content">
+
+                <div>
+                    <div class="portfolio-rate-title">
+                        <span id="live-portfolio-value">$10,000.00</span>
+                        <button class="collapse-arrow-btn">⌃</button>
+                    </div>
+                    <div class="rate-delta-sub">
+                        ↑ $11,000.00 (22.92%) <span
+                            style="color:var(--text-muted); font-weight:normal; margin-left:4px;">Total Growth</span>
+                    </div>
+                </div>
+
+                <div class="native-category-list" id="master-searchable-list">
+
+                    <div class="section-block-group"
+                        data-search-keys="crypto bitcoin btc spot eth sol ada xrp coin ripple cardano">
+                        <div class="section-group-title">Crypto Assets (Spot)</div>
+
+                        <div class="category-row-item" onclick="highlightChartAsset('BINANCE:BTCUSDT')">
+                            <div class="category-left-meta">
+                                <div class="category-icon-bg" style="background:#fff3e0; color:#ff9800;">₿</div>
+                                <div>
+                                    <div class="category-main-text">Bitcoin (BTC)</div>
+                                    <div class="category-sub-text" style="color:var(--trend-up);">↑ $1,420.50 (+2.19%)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="category-value-right">
+                                <div>$59,000.00</div>
+                                <div class="category-value-sub">0.92 BTC</div>
+                            </div>
+                        </div>
+
+                        <div class="category-row-item" onclick="highlightChartAsset('BINANCE:ETHUSDT')">
+                            <div class="category-left-meta">
+                                <div class="category-icon-bg" style="background:#e8eaf6; color:#3f51b5;">Ξ</div>
+                                <div>
+                                    <div class="category-main-text">Ethereum (ETH)</div>
+                                    <div class="category-sub-text" style="color:var(--trend-up);">↑ $94.20 (+2.85%)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="category-value-right">
+                                <div>$3,420.15</div>
+                                <div class="category-value-sub">1.00 ETH</div>
+                            </div>
+                        </div>
+
+                        <div class="category-row-item" onclick="highlightChartAsset('BINANCE:SOLUSDT')">
+                            <div class="category-left-meta">
+                                <div class="category-icon-bg" style="background:#e1f5fe; color:#0288d1;">◎</div>
+                                <div>
+                                    <div class="category-main-text">Solana (SOL)</div>
+                                    <div class="category-sub-text" style="color:var(--trend-down);">↓ $3.10 (-1.42%)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="category-value-right">
+                                <div>$184.60</div>
+                                <div class="category-value-sub">1.00 SOL</div>
+                            </div>
+                        </div>
+
+                        <div class="category-row-item" onclick="highlightChartAsset('BINANCE:ADAUSDT')">
+                            <div class="category-left-meta">
+                                <div class="category-icon-bg" style="background:#e0f2f1; color:#00695c;">₳</div>
+                                <div>
+                                    <div class="category-main-text">Cardano (ADA)</div>
+                                    <div class="category-sub-text" style="color:var(--trend-up);">↑ $0.02 (+4.11%)</div>
+                                </div>
+                            </div>
+                            <div class="category-value-right">
+                                <div>$540.00</div>
+                                <div class="category-value-sub">1,000 ADA</div>
+                            </div>
+                        </div>
+
+                        <div class="category-row-item" onclick="highlightChartAsset('BINANCE:XRPUSDT')">
+                            <div class="category-left-meta">
+                                <div class="category-icon-bg" style="background:#f3e5f5; color:#6a1b9a;">✕</div>
+                                <div>
+                                    <div class="category-main-text">Ripple (XRP)</div>
+                                    <div class="category-sub-text" style="color:var(--trend-down);">↓ $0.01 (-0.78%)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="category-value-right">
+                                <div>$295.40</div>
+                                <div class="category-value-sub">500 XRP</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-row-item" style="padding:4px 0;"
+                        data-search-keys="cash fiat deposit bank usd wire transfer institutional swift routing">
+                        <div class="category-left-meta">
+                            <div class="category-icon-bg">🏦</div>
+                            <div>
+                                <div class="category-main-text">Direct Wire Settlement Account</div>
+                                <div class="category-sub-text">Instant Tier-1 institutional wire instructions</div>
+                            </div>
+                        </div>
+                        <div class="category-value-right">
+                            <button class="deposit-trigger-text" onclick="openDepositModal();">Invoice Wire</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="native-action-footer-grid">
+                    <button class="app-btn app-btn-sec" onclick="openDepositModal()">Deposit</button>
+                    <button class="app-btn app-btn-prim" onclick="openTradingModal('BTC')">Buy & Sell</button>
+                </div>
+
+            </div>
+        </aside>
+
+        <main class="advanced-terminal-panel">
+
+            <div class="live-chart-container">
+                <iframe id="tradingview-live-frame"
+                    src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=BINANCE%3ABTCUSDT&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=en"
+                    style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
+            </div>
+
+            <footer class="terminal-signals-footer">
+                <div class="signals-header-title">
+                    <span>Live Market System Signal Terminal Feeds</span>
+                    <span
+                        style="font-size:11px; background:rgba(0,82,255,0.15); color:var(--primary-blue); padding:2px 8px; border-radius:4px;">Streaming
+                        Active</span>
+                </div>
+
+                <div class="signal-terminal-feed-row-stack" id="live-signal-log-anchor">
+                    <div class="signal-log-card buy-edge">
+                        <div>
+                            <span class="sig-pill">BTC Live Chat</span>
+                            <div class="sig-target-text">BTC/USDT Market Balance Feed Synced</div>
+                            <div class="sig-balance-text">Account Balance: $10,000.00</div>
+                        </div>
+                        <div class="sig-time-text">Live BTC</div>
+                    </div>
+                </div>
+            </footer>
+
+        </main>
+
+    </div>
+
+    <div class="terminal-modal-overlay" id="deposit-modal">
+        <div class="terminal-modal-card">
+            <div class="modal-header">
+                <h3>Institutional Bank Wire Routing</h3>
+                <button class="modal-close-btn" onclick="closeAllModals()">✕</button>
+            </div>
+            <div class="modal-body">
+
+                <p style="font-size:13px; color:#7987a1; line-height:1.4; margin-bottom:12px;">
+                    Initiate a wire transfer from your traditional bank application using the unique routing details
+                    below. Most settlements resolve within 2-4 hours.
+                </p>
+
+                <div class="wire-details-sheet">
+                    <div class="wire-row"><span class="wire-key">Beneficiary Name</span><span class="wire-val">Tonja Ann
+                            Clan</span></div>
+                    <div class="wire-row"><span class="wire-key">Clearing House Bank</span><span
+                            class="wire-val">CryptoVest Trust NA</span></div>
+                    <div class="wire-row"><span class="wire-key">ABA Routing Number</span><span
+                            class="wire-val">021000021</span></div>
+                    <div class="wire-row"><span class="wire-key">Settlement IBAN</span><span class="wire-val">US76 CVST
+                            9845 2202 611</span></div>
+                    <div class="wire-row"><span class="wire-key">SWIFT / BIC Node</span><span
+                            class="wire-val">CVSTUS33XXX</span></div>
+                    <div class="wire-row"><span class="wire-key">Reference ID Tag</span><span class="wire-val"
+                            style="color:#ff9800; font-weight:bold;">UID-98452-2026</span></div>
+                </div>
+
+                <div class="modal-field" style="margin-top:16px;">
+                    <label class="modal-label">Intended Wire Value Allocation</label>
+                    <div class="input-inline-wrapper">
+                        <input type="number" class="modal-input" id="deposit-amount-input" value="10000"
+                            placeholder="0.00">
+                        <span class="input-suffix">USD</span>
+                    </div>
+                </div>
+
+                <button class="modal-action-btn btn-deposit" onclick="executeProfessionalWireNotice()">Submit Wire
+                    Clearing Notice</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal-modal-overlay" id="trading-modal">
+        <div class="terminal-modal-card">
+            <div class="modal-header">
+                <h3>Terminal Order Ticket — <span id="trade-asset-title">BTC</span></h3>
+                <button class="modal-close-btn" onclick="closeAllModals()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-tabs">
+                    <div class="order-tab active" id="tab-market" onclick="switchOrderTab('market')">Market Order</div>
+                    <div class="order-tab" id="tab-limit" onclick="switchOrderTab('limit')">Limit Order</div>
+                </div>
+                <div class="modal-field">
+                    <label class="modal-label">Execution Action</label>
+                    <select class="modal-input" id="order-side-select"
+                        style="background: var(--modal-input); border-color:var(--modal-border);">
+                        <option value="Buy">Buy Long Position</option>
+                        <option value="Sell">Sell Short Liquidation</option>
+                    </select>
+                </div>
+                <div class="modal-field" id="limit-price-field" style="display: none;">
+                    <label class="modal-label">Target Limit Entry Price</label>
+                    <div class="input-inline-wrapper">
+                        <input type="number" class="modal-input" id="trade-price-input" value="65000">
+                        <span class="input-suffix">USD</span>
+                    </div>
+                </div>
+                <div class="modal-field">
+                    <label class="modal-label">Order Size Quantum</label>
+                    <div class="input-inline-wrapper">
+                        <input type="number" class="modal-input" id="trade-size-input" step="0.01" value="0.5"
+                            placeholder="0.00">
+                        <span class="input-suffix">SIZE</span>
+                    </div>
+                </div>
+                <button class="modal-action-btn btn-buy" id="trade-submit-btn"
+                    onclick="executeProfessionalOrder()">Route Electronic Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeOrderType = 'market';
+
+        function formatNumberWithCommas(num) {
+            return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        /* SEARCH ENGINE FILTER ROUTINE */
+        function executeLiveSearchFilter() {
+            const queryText = document.getElementById('terminal-search-field').value.toLowerCase().trim();
+            const assetRows = document.querySelectorAll('#master-searchable-list .category-row-item');
+
+            assetRows.forEach(row => {
+                if (queryText === "") { row.style.display = "flex"; return; }
+                if (row.innerText.toLowerCase().includes(queryText)) {
+                    row.style.display = "flex";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        /* SIMULATED WEB REVERSE IMAGE SEARCH PIPELINE */
+        function executeVisualReverseSearch() {
+            alert("🖼️ Visual Asset Identified! Transmitting image.png payload to network index modules for deep signature indexing...");
+            pushSystemNotification("🔍 Image Query Sent: Searching for global signature matches matching <strong>'TRADING Ring Emblem'</strong> across public nodes.");
+
+            setTimeout(() => {
+                pushSystemNotification("✅ Match Found: Signature verified across 14 external repositories. Context category mapped to <em>Financial Markets & Derivative Instruments</em>.");
+            }, 3000);
+        }
+
+        function toggleMainMenuDrawer() {
+            const drawer = document.getElementById('main-menu-drawer');
+            drawer.classList.toggle('open');
+            if (!drawer.classList.contains('open')) returnToDrawerRoot();
+        }
+
+        function openDrawerSubView(viewTarget) {
+            document.getElementById('drawer-root-links').style.display = 'none';
+            if (viewTarget === 'settings') {
+                document.getElementById('drawer-panel-title').innerText = 'Terminal Settings';
+                document.getElementById('drawer-view-settings').style.display = 'flex';
+            }
+            if (viewTarget === 'ledger') {
+                document.getElementById('drawer-panel-title').innerText = 'Audited Statement Ledger';
+                document.getElementById('drawer-view-ledger').style.display = 'flex';
+            }
+        }
+
+        function returnToDrawerRoot() {
+            document.getElementById('drawer-panel-title').innerText = 'Navigation Hub';
+            document.getElementById('drawer-root-links').style.display = 'flex';
+            document.getElementById('drawer-view-settings').style.display = 'none';
+            document.getElementById('drawer-view-ledger').style.display = 'none';
+        }
+
+        function toggleNotificationTray(event) {
+            event.stopPropagation();
+            document.getElementById('notif-tray').classList.toggle('open');
+            document.getElementById('notif-red-dot').style.display = 'none';
+        }
+
+        function clearActiveNotifications() {
+            document.getElementById('notif-tray-body').innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:13px;">No unread system logs.</div>';
+        }
+
+        window.addEventListener('click', () => {
+            document.getElementById('notif-tray').classList.remove('open');
+        });
+        document.getElementById('notif-tray').addEventListener('click', (e) => e.stopPropagation());
+
+        function highlightChartAsset(tickerSymbol) {
+            const chartFrame = document.getElementById('tradingview-live-frame');
+            if (chartFrame) {
+                chartFrame.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(tickerSymbol)}&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=en`;
+            }
+            pushSystemNotification(`Swapped active viewport to asset: <strong>${tickerSymbol}</strong>`);
+        }
+
+        function pushSystemNotification(htmlMessage) {
+            const trayBody = document.getElementById('notif-tray-body');
+            const placeholder = trayBody.querySelector('div[style*="text-align:center"]');
+            if (placeholder) placeholder.remove();
+
+            const itemNode = document.createElement('div');
+            itemNode.className = 'tray-item';
+            itemNode.innerHTML = `${htmlMessage} <div class="tray-item-time">🗓️ Just Now</div>`;
+            trayBody.insertBefore(itemNode, trayBody.firstChild);
+            document.getElementById('notif-red-dot').style.display = 'block';
+        }
+
+        function openDepositModal() {
+            closeAllModals();
+            document.getElementById('deposit-modal').style.display = 'flex';
+        }
+
+        function openTradingModal(assetName) {
+            closeAllModals();
+            document.getElementById('trade-asset-title').innerText = assetName;
+            document.getElementById('trading-modal').style.display = 'flex';
+        }
+
+        function closeAllModals() {
+            document.getElementById('deposit-modal').style.display = 'none';
+            document.getElementById('trading-modal').style.display = 'none';
+        }
+
+        function switchOrderTab(tabType) {
+            activeOrderType = tabType;
+            document.getElementById('tab-market').classList.remove('active');
+            document.getElementById('tab-limit').classList.remove('active');
+
+            if (tabType === 'market') {
+                document.getElementById('tab-market').classList.add('active');
+                document.getElementById('limit-price-field').style.display = 'none';
+            } else {
+                document.getElementById('tab-limit').classList.add('active');
+                document.getElementById('limit-price-field').style.display = 'flex';
+            }
+        }
+
+        function executeProfessionalWireNotice() {
+            const inputAmount = document.getElementById('deposit-amount-input').value;
+            if (!inputAmount || inputAmount <= 0) return alert("Please specify a valid allocation amount.");
+
+            closeAllModals();
+            alert(`🏦 Wire Settlement Notice Sent! Electronic network manifests are awaiting matching incoming bank clearing for $${formatNumberWithCommas(parseFloat(inputAmount))} USD.`);
+            pushSystemNotification(`Inbound Wire Processing Pending Notice: <strong>$${formatNumberWithCommas(parseFloat(inputAmount))} USD</strong>`);
+
+            injectCustomLedgerRecord("Wire Deposit", parseFloat(inputAmount), "Electronic wire asset notice logged. Awaiting traditional routing verification block.", "Just Now", false);
+            injectCustomSignalLog("Wire Inbound", `Routing Settlement Notice Dispatched`, inputAmount, true);
+        }
+
+        function executeProfessionalOrder() {
+            const asset = document.getElementById('trade-asset-title').innerText;
+            const side = document.getElementById('order-side-select').value;
+            const size = document.getElementById('trade-size-input').value;
+
+            if (!size || size <= 0) return alert("Please specify a valid quantity size.");
+
+            closeAllModals();
+            alert(`🚀 Electronic Order Dispatched: ${side} ${size} units of ${asset}.`);
+            pushSystemNotification(`Executed electronic order routing ticket: <strong>${side.toUpperCase()} ${size} ${asset}</strong>`);
+
+            injectCustomSignalLog(asset, `Electronic Order Executed: ${side} ${size} units`, null, side === 'Buy');
+        }
+
+        function injectCustomLedgerRecord(typeLabel, amount, textInfo, timestampStr, isGain) {
+            const anchor = document.getElementById('historical-statement-anchor');
+            if (!anchor) return;
+            const cardNode = document.createElement('div');
+            cardNode.className = 'ledger-item-card';
+            cardNode.innerHTML = `
+                <div class="ledger-top-row">
+                    <span class="ledger-badge-type ${isGain ? 'badge-gain' : 'badge-deposit'}">${typeLabel}</span>
+                    <span class="ledger-amount-value ${isGain ? 'amt-pos' : 'amt-neutral'}">${isGain ? '+' : ''}$${formatNumberWithCommas(amount)}</span>
+                </div>
+                <div class="ledger-details-line">${textInfo}</div>
+                <div class="ledger-timestamp-sub">🗓️ ${timestampStr}</div>
+            `;
+            anchor.insertBefore(cardNode, anchor.firstChild);
+        }
+
+        function injectCustomSignalLog(asset, detailsText, customVal, isBuySide) {
+            const targetSignalsAnchor = document.getElementById('live-signal-log-anchor');
+            if (!targetSignalsAnchor) return;
+            const timeStr = new Date().toTimeString().split(' ');
+
+            const cardNode = document.createElement('div');
+            cardNode.className = `signal-log-card ${isBuySide ? 'buy-edge' : 'sell-edge'}`;
+            cardNode.innerHTML = `
+                <div>
+                    <span class="sig-pill">${isBuySide ? 'User Order Entry' : 'User Exit Matrix'}</span>
+                    <div class="sig-target-text">${asset} Core Action Node</div>
+                    <div style="font-size:11px; color:#7987a1; margin-top:4px;">${detailsText}</div>
+                </div>
+                <div class="sig-time-text">${timeStr}</div>
+            `;
+            targetSignalsAnchor.insertBefore(cardNode, targetSignalsAnchor.firstChild);
+        }
+
+        function runLiveSignalTerminalEngine() {
+            const targetSignalsAnchor = document.getElementById('live-signal-log-anchor');
+            const assetAssets = ['BTC/USDT'];
+
+            setInterval(() => {
+                if (!targetSignalsAnchor) return;
+                const isBuyAction = Math.random() > 0.5;
+                const asset = assetAssets[0];
+                const price = (0.50 + Math.random() * 64000);
+                const timeStr = new Date().toTimeString().split(' ');
+                const currentBalance = document.getElementById('live-portfolio-value')?.innerText || '$10,000.00';
+
+                const cardNode = document.createElement('div');
+                cardNode.className = `signal-log-card ${isBuyAction ? 'buy-edge' : 'sell-edge'}`;
+                cardNode.innerHTML = `
+                    <div>
+                        <span class="sig-pill">${isBuyAction ? 'BTC Buy Signal' : 'BTC Alert'}</span>
+                        <div class="sig-target-text">${asset} Live Chat Balance Sync @ $${formatNumberWithCommas(price)}</div>
+                        <div class="sig-balance-text">Account Balance: ${currentBalance}</div>
+                    </div>
+                    <div class="sig-time-text">${timeStr}</div>
+                `;
+                targetSignalsAnchor.insertBefore(cardNode, targetSignalsAnchor.firstChild);
+                if (targetSignalsAnchor.children.length > 4) targetSignalsAnchor.removeChild(targetSignalsAnchor.lastChild);
+            }, 6500);
+
+            // Balance should remain fixed at $10,000.00 and not revert to the previous displayed amount.
+            // The live signal engine continues to run without altering portfolio balance.
+        }
+
+        window.onload = () => { runLiveSignalTerminalEngine(); };
+    </script>
+</body>
+
+</html>
